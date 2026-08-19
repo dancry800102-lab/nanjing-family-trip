@@ -2,11 +2,23 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-const members = ["李文龍", "馬僖慧", "李文斌", "黃富美", "李素玲", "蔡壁燦", "李素貞", "陳怡君"];
+const members = ["李文龍", "馬僖慧", "李文斌", "黃富美", "李素玲", "蔡壁燦", "李素珍", "陳怡君"];
 
 type Stop = { time: string; title: string; detail: string; food?: string };
 type Day = { date: string; weekday: string; label: string; title: string; transport: string; hotel: string; stops: Stop[]; note?: string };
 type Expense = { id: number; title: string; amount: number; payer: string; splitMode: "all" | "custom"; participants: string[]; createdAt: string };
+type Ticket = { name: string; englishName: string; ticketSuffix: string };
+
+const tickets: Ticket[] = [
+  { name: "李文龍", englishName: "LEE/WENLUNG", ticketSuffix: "7706" },
+  { name: "黃富美", englishName: "HUANG/FUMEI", ticketSuffix: "7707" },
+  { name: "馬僖慧", englishName: "MA/HSIHUI", ticketSuffix: "7708" },
+  { name: "李文斌", englishName: "LEE/WENPING", ticketSuffix: "7709" },
+  { name: "蔡壁燦", englishName: "TSAI/PITSAN", ticketSuffix: "7710" },
+  { name: "李素玲", englishName: "LEE/SULING", ticketSuffix: "7711" },
+  { name: "李素珍", englishName: "LEE/SUCHEN", ticketSuffix: "7712" },
+  { name: "陳怡君", englishName: "CHEN/YIJIUN", ticketSuffix: "7713" },
+];
 
 const supabaseUrl = "https://riymnecjfrgeqiwnytdj.supabase.co";
 const supabaseKey = "sb_publishable_897WJUODqwKH9FOBam_fdg_assAWeFv";
@@ -18,83 +30,71 @@ const supabaseHeaders = {
 
 const days: Day[] = [
   {
-    date: "11/18", weekday: "三", label: "DAY 1", title: "抵達南京・新街口時尚漫遊",
-    transport: "祿口機場 → 南京南站：地鐵 S1 號線；市區搭地鐵 1 號線", hotel: "南京南站青沐尚酒店",
+    date: "11/18", weekday: "三", label: "DAY 1", title: "抵達南京與市區初體驗",
+    transport: "南京祿口機場 → 南京南站 → 新街口", hotel: "南京南站清木尚酒店",
     stops: [
-      { time: "11:40–14:00", title: "高雄飛往南京", detail: "KHH 小港國際機場 → NKG 南京祿口國際機場 T2" },
-      { time: "14:00–15:30", title: "飯店 Check-in", detail: "抵達飯店辦理入住，稍微休息。" },
-      { time: "16:00–20:30", title: "新街口＋德基廣場", detail: "1 號線直達新街口站；7 號出口地下通道直通德基廣場。打卡奢華藝術洗手間與 8 樓德基藝術館。", food: "南京大牌檔（德基店）：金陵美齡粥、天王烤鴨包、王府泡椒雞。" },
-      { time: "20:30", title: "返回飯店", detail: "新街口站搭地鐵 1 號線直達南京南站。" },
+      { time: "11:40–14:00", title: "高雄飛往南京", detail: "高雄小港機場 KHH → 南京祿口國際機場 NKG，東方航空 MU2946。" },
+      { time: "16:00", title: "飯店 Check-in", detail: "前往南京南站清木尚酒店辦理入住。" },
+      { time: "17:00", title: "新街口德基廣場", detail: "逛街、享用南京在地美食與晚餐。" },
     ],
   },
   {
-    date: "11/19", weekday: "四", label: "DAY 2", title: "東郊綠意・琉璃光影美學",
-    transport: "地鐵 1 號線轉 2 號線", hotel: "南京南站青沐尚酒店",
+    date: "11/19", weekday: "四", label: "DAY 2", title: "民國風情與歷史文化",
+    transport: "地鐵與市區短程交通", hotel: "南京南站清木尚酒店",
     stops: [
-      { time: "09:00–11:30", title: "鐘山風景區", detail: "苜蓿園站 1/3 號出口到梧桐大道，搭景區觀光車遊明孝陵石象路神道與方城明樓。" },
-      { time: "11:30–13:30", title: "美齡宮＋午餐", detail: "參觀美齡宮後用餐。", food: "小廚娘淮揚菜（下馬坊店）：淮揚獅子頭、清蒸白花魚。" },
-      { time: "13:30–15:30", title: "中山陵・博愛廣場", detail: "搭觀光車至博愛廣場拍照，長輩可不登 392 級台階。" },
-      { time: "16:00–18:00", title: "大報恩寺遺址公園", detail: "中華門站附近，全平路、室內展館，欣賞琉璃光影與地宮聖物。" },
-      { time: "18:30", title: "綠柳居晚餐", detail: "百年清真老字號。", food: "素菜包、牛腩煲、金陵鹽水鴨。" },
+      { time: "全天", title: "南京博物院", detail: "參觀館藏與民國館；熱門時段須提前預約。" },
+      { time: "下午", title: "南京總統府", detail: "參觀近代歷史建築與園區。" },
+      { time: "傍晚", title: "南京 1912 街區", detail: "漫步酒吧與文創街區，感受民國建築氛圍。" },
     ],
   },
   {
-    date: "11/20", weekday: "五", label: "DAY 3", title: "南郊建築・老城南・秦淮夜遊",
-    transport: "計程車／滴滴＋地鐵 3 號線", hotel: "南京南站青沐尚酒店",
+    date: "11/20", weekday: "五", label: "DAY 3", title: "鍾山景區與老門東巡禮",
+    transport: "景區觀光車＋地鐵／計程車", hotel: "南京南站清木尚酒店",
     stops: [
-      { time: "09:00–12:00", title: "牛首山文化旅遊區", detail: "飯店門口叫車約 20 分鐘；購買往返觀光車票直達山頂佛頂宮，內有手扶梯與電梯。" },
-      { time: "12:30–14:30", title: "景區午餐與歇腳", detail: "清淡養生用餐。", food: "牛首山景區蔬食／梁武素食：羅漢齋、素什錦。" },
-      { time: "15:00–16:30", title: "南京城牆・中華門甕城", detail: "登上平整城牆，俯瞰秦淮河。" },
-      { time: "16:30–18:00", title: "瞻園", detail: "欣賞假山亭台、池塘錦鯉與幽靜江南名園。" },
-      { time: "18:00–19:30", title: "老門東小吃巡禮", detail: "步行品嚐南京味。", food: "蔣有記牛肉鍋貼、牛肉粉絲湯、陸氏梅花糕、蓮湖糕團店桂花赤豆元宵。" },
-      { time: "19:30–20:30", title: "夜遊外秦淮河", detail: "掃葉樓／石頭城碼頭或中華門碼頭搭畫舫，欣賞明城牆夜景。" },
+      { time: "白天", title: "鍾山風景區", detail: "梧桐大道 → 明孝陵 → 美齡宮 → 中山陵 → 音樂台餵鴿子 → 靈谷寺。" },
+      { time: "傍晚／晚上", title: "老門東歷史街區", detail: "漫步老城南街巷，品嚐在地小吃。" },
+      { time: "晚上", title: "大報恩寺遺址公園", detail: "參觀遺址展館與琉璃塔夜景。" },
     ],
   },
   {
-    date: "11/21", weekday: "六", label: "DAY 4", title: "國寶文博盛宴・城市綠肺",
-    transport: "地鐵 1／3 號線轉 2 號線", hotel: "南京南站青沐尚酒店",
+    date: "11/21", weekday: "六", label: "DAY 4", title: "返鄉探親",
+    transport: "南京往返句容", hotel: "南京南站清木尚酒店",
     stops: [
-      { time: "09:00–12:00", title: "南京博物院", detail: "明故宮站步行約 300 公尺；重點看歷史館與地下民國館。若未預約到，改六朝博物館。" },
-      { time: "12:00–14:00", title: "科巷美食街", detail: "午餐慢慢吃。", food: "馨方園食府／廣迎居：金陵鹽水鴨、軟兜長魚、揚州獅子頭。" },
-      { time: "14:30–16:00", title: "古雞鳴寺", detail: "參拜千年古剎，可品嚐寺內雞鳴賜福素麵。" },
-      { time: "16:00–18:00", title: "玄武湖公園", detail: "從台城口進入，租環湖觀光電瓶車，輕鬆欣賞湖光山色與夕陽。" },
+      { time: "全天", title: "返回句容", detail: "探親訪友，行程以家人安排為主。" },
     ],
   },
   {
-    date: "11/22", weekday: "日", label: "DAY 5", title: "近代歷史・頤和路民國風情",
-    transport: "地鐵 3 號線＋短途計程車", hotel: "南京南站青沐尚酒店",
+    date: "11/22", weekday: "日", label: "DAY 5", title: "古剎湖光與秦淮夜景",
+    transport: "地鐵＋步行＋秦淮河遊船", hotel: "南京南站清木尚酒店",
     stops: [
-      { time: "09:30–12:00", title: "總統府", detail: "南京南站搭 3 號線至大行宮站，5 號出口步行 3 分鐘。" },
-      { time: "12:00–13:30", title: "1912 街區午餐", detail: "就近用餐。", food: "小廚娘淮揚菜（1912 店）：松鼠桂魚、燉蛋燒牛肉。" },
-      { time: "13:35–15:20", title: "六朝博物館", detail: "總統府正隔壁，欣賞貝聿銘事務所設計的竹林美學展館。" },
-      { time: "15:30–17:30", title: "頤和路歷史文化街區", detail: "漫步黃牆黛瓦，於頤和公館內茶室喝花茶歇腳。" },
-      { time: "18:00–19:30", title: "獅子樓晚餐", detail: "湖南路店。", food: "南京大獅子頭、生炊黃鱔。" },
+      { time: "上午", title: "雞鳴寺", detail: "參拜古剎後登上明城牆。" },
+      { time: "上午／下午", title: "明城牆與玄武湖", detail: "沿城牆遠眺湖景，再遊覽玄武湖公園。" },
+      { time: "晚上", title: "夜遊秦淮河", detail: "搭船賞秦淮夜景，續遊夫子廟商業街區。" },
     ],
   },
   {
-    date: "11/23", weekday: "一", label: "DAY 6", title: "棲霞古剎・山林慢遊",
-    transport: "計程車＋地鐵 S1 機場線", hotel: "祿口機場飯店（諾富特酒店／陸港客棧）",
+    date: "11/23", weekday: "一", label: "DAY 6", title: "棲霞秋色",
+    transport: "南京市區往返棲霞山", hotel: "南京南站清木尚酒店",
     stops: [
-      { time: "08:30", title: "退房＋順豐行李寄送", detail: "大型行李交給飯店前台，預約順豐同城寄至機場飯店。" },
-      { time: "09:00–12:00", title: "棲霞山＋棲霞古鎮", detail: "叫車約 35 分鐘，參觀山腳千年古剎棲霞寺。" },
-      { time: "12:00–14:00", title: "棲霞寺午餐", detail: "清淡素食。", food: "千佛齋素菜館：清蒸素鴨、羅漢齋。" },
-      { time: "15:00", title: "前往機場飯店 Check-in", detail: "南京南站搭地鐵 S1 號線約 35 分鐘至祿口機場站，入住並領取寄達行李。" },
+      { time: "全天", title: "棲霞山賞楓", detail: "前往棲霞山賞楓觀景，依體力安排步道與棲霞寺參觀。" },
     ],
   },
   {
-    date: "11/24", weekday: "二", label: "DAY 7", title: "彈性備用・輕鬆休息",
-    transport: "以飯店接駁／短程計程車為主", hotel: "祿口機場飯店",
-    note: "原攻略未安排此日；依 11/18–11/25 航班日期補為彈性日，可用於休息、採買伴手禮，或因天候調整前幾日景點。",
+    date: "11/24", weekday: "二", label: "DAY 7", title: "牛首攬勝與轉移機場住宿",
+    transport: "計程車／叫車＋麗楓酒店接送服務", hotel: "南京祿口機場麗楓酒店",
     stops: [
-      { time: "全日", title: "保留彈性，不趕行程", detail: "建議在機場飯店周邊休息，提早整理行李並確認隔日 05:40 退房。" },
+      { time: "08:30", title: "退房與寄放行李", detail: "南京南站清木尚酒店辦理退房，將行李寄放櫃檯。" },
+      { time: "09:00–13:00", title: "牛首山文化旅遊區", detail: "半日遊，重點參觀佛頂宮。" },
+      { time: "14:00", title: "取行李並前往機場飯店", detail: "返回清木尚酒店取行李，搭車前往南京祿口機場麗楓酒店。" },
+      { time: "15:00", title: "麗楓酒店 Check-in", detail: "辦理入住，使用預約之麗楓酒店接送服務。" },
     ],
   },
   {
-    date: "11/25", weekday: "三", label: "DAY 8", title: "早安南京・平安返台",
-    transport: "飯店步行／接駁至航廈", hotel: "溫暖的家",
+    date: "11/25", weekday: "三", label: "DAY 8", title: "順利返台",
+    transport: "麗楓酒店送機專車", hotel: "溫暖的家",
     stops: [
-      { time: "05:40–05:50", title: "退房、前往東航櫃檯", detail: "步行約 5 分鐘抵達航廈，建議預留充足報到時間。" },
-      { time: "07:50–10:10", title: "南京飛回高雄", detail: "NKG 南京祿口國際機場 T2 → KHH 小港國際機場。" },
+      { time: "05:30", title: "搭乘飯店送機專車", detail: "使用預約之麗楓酒店接送服務前往南京祿口國際機場。" },
+      { time: "07:50–10:10", title: "南京飛回高雄", detail: "南京祿口國際機場 NKG → 高雄小港機場 KHH，東方航空 MU2945。" },
     ],
   },
 ];
@@ -104,7 +104,7 @@ function money(value: number) {
 }
 
 export default function TripApp() {
-  const [section, setSection] = useState<"trip" | "ledger">("trip");
+  const [section, setSection] = useState<"trip" | "tickets" | "ledger">("trip");
   const [activeDay, setActiveDay] = useState(0);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -132,9 +132,9 @@ export default function TripApp() {
         id: row.id,
         title: row.title,
         amount: Number(row.amount),
-        payer: row.payer,
+        payer: row.payer === "李素貞" ? "李素珍" : row.payer,
         splitMode: row.split_mode,
-        participants: row.participants ?? [],
+        participants: (row.participants ?? []).map((name) => name === "李素貞" ? "李素珍" : name),
         createdAt: row.created_at,
       })));
     } catch {
@@ -203,6 +203,7 @@ export default function TripApp() {
           <a className="brand" href="#"><span>南京</span>慢遊記</a>
           <div className="nav-actions">
             <button className={section === "trip" ? "active" : ""} onClick={() => setSection("trip")}>行程</button>
+            <button className={section === "tickets" ? "active" : ""} onClick={() => setSection("tickets")}>機票資訊</button>
             <button className={section === "ledger" ? "active" : ""} onClick={() => setSection("ledger")}>共享記帳</button>
           </div>
         </nav>
@@ -273,13 +274,41 @@ export default function TripApp() {
           <section className="tips section-wrap">
             <div className="section-heading"><div><p className="eyebrow dark">BEFORE YOU GO</p><h2>出發前提醒</h2></div></div>
             <div className="tip-grid">
-              <div><span>01</span><h3>熱門場館先預約</h3><p>南京博物院提前 7 天零點搶約；中山陵免費但需預約；總統府需購票預約。</p></div>
-              <div><span>02</span><h3>手機交通碼</h3><p>在微信或支付寶搜尋「南京地鐵電子卡」，綁定後進出閘門直接掃碼。</p></div>
-              <div><span>03</span><h3>行李同城寄送</h3><p>11/23 退房時預約順豐同城，將大件行李送至機場飯店。</p></div>
-              <div><span>04</span><h3>雨天備案</h3><p>南京博物院可改六朝博物館或江寧織造博物館；大報恩寺、德基藝術館與瞻園也適合雨天。</p></div>
+              <div><span>01</span><h3>確認旅遊證件</h3><p>出發前請確認台胞證仍在有效期限內，並隨身妥善保管。</p></div>
+              <div><span>02</span><h3>熱門景點先預約</h3><p>南京博物院、中山陵、牛首山等熱門景點，建議提前在官方小程序預約門票。</p></div>
+              <div><span>03</span><h3>設定手機交通碼</h3><p>預先下載並綁定南京地鐵電子卡，或使用支付寶、微信乘車碼。</p></div>
             </div>
           </section>
         </>
+      ) : section === "tickets" ? (
+        <section className="tickets section-wrap">
+          <div className="section-heading">
+            <div><p className="eyebrow dark">FLIGHT INFORMATION</p><h2>全員機票資訊</h2></div>
+            <p>依 8 份電子機票逐一核對；票號僅顯示末四碼，避免在公開網站暴露完整識別資料。</p>
+          </div>
+
+          <div className="flight-summary">
+            <div><span>去程 · MU2946</span><strong>11/18　11:40 → 14:00</strong><p>高雄小港 KHH → 南京祿口 NKG T2</p></div>
+            <div><span>回程 · MU2945</span><strong>11/25　07:50 → 10:10</strong><p>南京祿口 NKG T2 → 高雄小港 KHH</p></div>
+            <div><span>共同資訊</span><strong>訂位代號 NXQTTF</strong><p>中國東方航空 · 每人托運 1 件，每件 23 公斤</p></div>
+          </div>
+
+          <div className="hotel-summary">
+            <div><span>11/18–11/23</span><strong>南京南站清木尚酒店</strong><p>前六晚住宿</p></div>
+            <div><span>11/24</span><strong>南京祿口機場麗楓酒店</strong><p>最後一晚，使用預約接送服務</p></div>
+          </div>
+
+          <div className="ticket-grid">
+            {tickets.map((ticket, index) => (
+              <article className="ticket-card" key={ticket.englishName}>
+                <div className="ticket-index">{String(index + 1).padStart(2, "0")}</div>
+                <div><small>旅客姓名</small><h3>{ticket.name}</h3><p>{ticket.englishName}</p></div>
+                <div className="ticket-number"><small>電子機票</small><b>•••• {ticket.ticketSuffix}</b></div>
+              </article>
+            ))}
+          </div>
+          <p className="ticket-note">請以護照或台胞證上的英文姓名辦理報到；航班時間仍應於出發前再次向航空公司確認。</p>
+        </section>
       ) : (
         <section className="ledger section-wrap">
           <div className="section-heading">

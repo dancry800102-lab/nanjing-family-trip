@@ -9,7 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const image = `${protocol}://${host}/og.png`;
   return {
     title: "南京慢遊記｜南京 8 日同行手冊",
-    description: "高雄出發，8 人同行的南京行程、交通、美食與共享記帳。",
+    description: "高雄出發，8 人同行的南京行程、機票資訊、交通與共享記帳。",
     openGraph: {
       title: "南京慢遊記｜南京 8 日同行手冊",
       description: "11.18–11.25 高雄往返南京，8 人同行的完整旅遊手冊。",

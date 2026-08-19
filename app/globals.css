@@ -77,11 +77,31 @@ button { cursor:pointer; }
 .member-grid span { color:#b7c8bf; font:12px Arial,sans-serif; }
 .member-grid b { font-size:21px; letter-spacing:.12em; }
 .tips { padding:100px 0; }
-.tip-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line); border:1px solid var(--line); }
+.tip-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); }
 .tip-grid div { background:var(--paper); padding:32px 28px; }
 .tip-grid span { font:700 12px Arial,sans-serif; color:var(--red); }
 .tip-grid h3 { font-size:19px; margin:30px 0 14px; }
 .tip-grid p { color:#68716b; line-height:1.8; margin:0; }
+.tickets { padding:100px 0; min-height:900px; }
+.flight-summary { display:grid; grid-template-columns:repeat(3,1fr); background:var(--ink); color:white; margin-bottom:24px; }
+.flight-summary>div { padding:30px; border-right:1px solid rgba(255,255,255,.15); }
+.flight-summary>div:last-child { border-right:0; }
+.flight-summary span,.ticket-card small { display:block; color:#c7ae79; font:700 11px/1.4 Arial,sans-serif; letter-spacing:.12em; text-transform:uppercase; }
+.flight-summary strong { display:block; margin:12px 0 8px; font:700 20px/1.4 Arial,sans-serif; }
+.flight-summary p { margin:0; color:#bfc7c2; line-height:1.6; }
+.hotel-summary { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line); border:1px solid var(--line); margin-bottom:34px; }
+.hotel-summary>div { padding:24px 30px; background:#eee7da; }
+.hotel-summary span { color:var(--red); font:700 12px Arial,sans-serif; }
+.hotel-summary strong { display:block; margin:8px 0 5px; font-size:20px; }
+.hotel-summary p { margin:0; color:#68716b; }
+.ticket-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.ticket-card { display:grid; grid-template-columns:56px 1fr auto; gap:20px; align-items:center; background:#fbf9f4; border:1px solid var(--line); padding:24px; }
+.ticket-index { font:700 15px Arial,sans-serif; color:var(--red); border-right:1px solid var(--gold); align-self:stretch; display:flex; align-items:center; }
+.ticket-card h3 { margin:5px 0 3px; font-size:23px; }
+.ticket-card p { margin:0; color:#68716b; font:700 13px Arial,sans-serif; letter-spacing:.05em; }
+.ticket-number { text-align:right; }
+.ticket-number b { display:block; margin-top:7px; font:700 15px Arial,sans-serif; }
+.ticket-note { margin:24px 0 0; padding:18px 20px; border-left:3px solid var(--red); background:#f1e8da; color:#675d54; line-height:1.7; }
 .ledger { padding:100px 0; min-height:900px; }
 .ledger-overview { display:grid; grid-template-columns:2fr 1fr 1fr; background:var(--ink); color:white; margin-bottom:34px; }
 .total-card,.mini-stat { padding:30px 34px; }
@@ -132,6 +152,7 @@ footer b,footer span { display:block; }.footer span { font:11px Arial,sans-serif
   .hero { min-height:700px; }.hero-art { right:-170px; opacity:.7; }.hero-copy { margin-top:80px; }.hero h1 { font-size:64px; }
   .day-tabs { overflow-x:auto; grid-template-columns:repeat(8,90px); }.people-inner { grid-template-columns:1fr; gap:50px; }.tip-grid { grid-template-columns:1fr 1fr; }
   .ledger-grid { grid-template-columns:1fr; }.flight-strip { grid-template-columns:1fr 70px 1fr; }.day-panel { padding:38px 30px; }
+  .flight-summary { grid-template-columns:1fr; }.flight-summary>div { border-right:0;border-bottom:1px solid rgba(255,255,255,.15); }
 }
 @media (max-width:620px) {
   .section-wrap,.topbar,.hero-copy,.flight-strip { width:min(100% - 24px,1180px); }
@@ -139,11 +160,12 @@ footer b,footer span { display:block; }.footer span { font:11px Arial,sans-serif
   .hero { min-height:670px; }.hero-copy { margin-top:72px; }.hero h1 { font-size:48px; }.lead { font-size:17px;line-height:1.7; }
   .trip-facts { gap:22px; }.hero-art { width:260px;height:320px;right:-155px; }.hero-art span { font-size:120px; }
   .flight-strip { margin-top:-42px;padding:22px 18px;grid-template-columns:1fr;gap:18px; }.flight-strip>div:last-child { text-align:left; }.flight-line { display:none; }
-  .itinerary,.ledger { padding:80px 0; }.section-heading { align-items:start;flex-direction:column;margin-bottom:34px; }.section-heading h2,.people h2 { font-size:36px; }
+  .itinerary,.ledger,.tickets { padding:80px 0; }.section-heading { align-items:start;flex-direction:column;margin-bottom:34px; }.section-heading h2,.people h2 { font-size:36px; }
   .day-panel { padding:28px 18px; }.day-intro { align-items:start; }.day-number { font-size:34px; }.day-intro h3 { font-size:25px; }
   .day-meta { grid-template-columns:1fr; }.stop { grid-template-columns:78px 28px 1fr;gap:9px; }.time { font-size:12px; }.dot { width:26px;height:26px; }.dot:after { left:13px;top:26px; }
   .stop-card h4 { font-size:18px; }.stop-card>p { font-size:15px; }.food span { display:block;margin:0 0 5px; }
   .people { padding:70px 0; }.member-grid { grid-template-columns:1fr; }.member-grid div:nth-child(odd) { border-right:0; }.tip-grid { grid-template-columns:1fr; }
+  .ticket-grid,.hotel-summary { grid-template-columns:1fr; }.ticket-card { grid-template-columns:46px 1fr; }.ticket-number { grid-column:2;text-align:left; }
   .ledger-overview { grid-template-columns:1fr 1fr; }.total-card { grid-column:1/-1;border-bottom:1px solid rgba(255,255,255,.15); }.total-card strong { font-size:38px; }.mini-stat { padding:24px 18px; }
   .expense-form,.balance-list,.history { padding:24px 18px; }.split-options { grid-template-columns:1fr; }.expense-row { grid-template-columns:1fr auto; }.expense-row button { grid-column:2; }
   footer { flex-direction:column;align-items:start;gap:15px; }

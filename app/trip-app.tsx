@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-const members = ["李文龍", "馬僖慧", "李文斌", "黃富美", "李素玲", "蔡壁燦", "李素珍", "陳怡君"];
+const members = ["李文龍", "馬僖慧", "李文斌", "黃富美", "李素玲", "蔡璧燦", "李素珍", "陳怡君"];
 
 type Stop = { time: string; title: string; detail: string; food?: string };
 type Day = { date: string; weekday: string; label: string; title: string; transport: string; hotel: string; stops: Stop[]; note?: string };
@@ -14,7 +14,7 @@ const tickets: Ticket[] = [
   { name: "黃富美", englishName: "HUANG/FUMEI", ticketSuffix: "7707" },
   { name: "馬僖慧", englishName: "MA/HSIHUI", ticketSuffix: "7708" },
   { name: "李文斌", englishName: "LEE/WENPING", ticketSuffix: "7709" },
-  { name: "蔡壁燦", englishName: "TSAI/PITSAN", ticketSuffix: "7710" },
+  { name: "蔡璧燦", englishName: "TSAI/PITSAN", ticketSuffix: "7710" },
   { name: "李素玲", englishName: "LEE/SULING", ticketSuffix: "7711" },
   { name: "李素珍", englishName: "LEE/SUCHEN", ticketSuffix: "7712" },
   { name: "陳怡君", englishName: "CHEN/YIJIUN", ticketSuffix: "7713" },
@@ -167,9 +167,9 @@ export default function TripApp() {
         id: row.id,
         title: row.title,
         amount: Number(row.amount),
-        payer: row.payer === "李素貞" ? "李素珍" : row.payer,
+        payer: row.payer === "李素貞" ? "李素珍" : row.payer === "蔡壁燦" ? "蔡璧燦" : row.payer,
         splitMode: row.split_mode,
-        participants: (row.participants ?? []).map((name) => name === "李素貞" ? "李素珍" : name),
+        participants: (row.participants ?? []).map((name) => name === "李素貞" ? "李素珍" : name === "蔡壁燦" ? "蔡璧燦" : name),
         createdAt: row.created_at,
       })));
     } catch {

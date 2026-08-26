@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { NextRequest, NextResponse } from "next/server";
 
-const members = ["李文龍", "馬僖慧", "李文斌", "黃富美", "李素玲", "蔡壁燦", "李素珍", "陳怡君"];
+const members = ["李文龍", "馬僖慧", "李文斌", "黃富美", "李素玲", "蔡璧燦", "李素珍", "陳怡君"];
 
 async function ensureTable() {
   await env.DB.prepare(`

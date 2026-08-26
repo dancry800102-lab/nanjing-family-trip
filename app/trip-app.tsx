@@ -20,13 +20,7 @@ const tickets: Ticket[] = [
   { name: "陳怡君", englishName: "CHEN/YIJIUN", ticketSuffix: "7713" },
 ];
 
-const supabaseUrl = "https://riymnecjfrgeqiwnytdj.supabase.co";
-const supabaseKey = "sb_publishable_897WJUODqwKH9FOBam_fdg_assAWeFv";
-const expensesEndpoint = `${supabaseUrl}/rest/v1/expenses`;
-const supabaseHeaders = {
-  apikey: supabaseKey,
-  Authorization: `Bearer ${supabaseKey}`,
-};
+const expensesEndpoint = "https://jinling-nanjing-trip-2026.dancry800102.chatgpt.site/api/expenses";
 
 const days: Day[] = [
   {
@@ -149,28 +143,25 @@ export default function TripApp() {
 
   async function loadExpenses() {
     try {
-      const response = await fetch(`${expensesEndpoint}?select=*&order=id.desc`, {
-        cache: "no-store",
-        headers: supabaseHeaders,
-      });
+      const response = await fetch(expensesEndpoint, { cache: "no-store" });
       if (!response.ok) throw new Error();
       const rows = await response.json() as Array<{
         id: number;
         title: string;
         amount: number | string;
         payer: string;
-        split_mode: "all" | "custom";
+        splitMode: "all" | "custom";
         participants: string[];
-        created_at: string;
+        createdAt: string;
       }>;
       setExpenses(rows.map((row) => ({
         id: row.id,
         title: row.title,
         amount: Number(row.amount),
         payer: row.payer === "李素貞" ? "李素珍" : row.payer === "蔡壁燦" ? "蔡璧燦" : row.payer,
-        splitMode: row.split_mode,
+        splitMode: row.splitMode,
         participants: (row.participants ?? []).map((name) => name === "李素貞" ? "李素珍" : name === "蔡壁燦" ? "蔡璧燦" : name),
-        createdAt: row.created_at,
+        createdAt: row.createdAt,
       })));
     } catch {
       setError("記帳資料目前無法連線，請稍後再試。");
@@ -192,12 +183,12 @@ export default function TripApp() {
     try {
       const response = await fetch(expensesEndpoint, {
         method: "POST",
-        headers: { ...supabaseHeaders, "Content-Type": "application/json", Prefer: "return=minimal" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: form.title.trim(),
           amount,
           payer: form.payer,
-          split_mode: form.splitMode,
+          splitMode: form.splitMode,
           participants: form.splitMode === "custom" ? form.participants : [],
         }),
       });
@@ -210,9 +201,8 @@ export default function TripApp() {
 
   async function removeExpense(id: number) {
     if (!window.confirm("確定要刪除這筆帳嗎？")) return;
-    const response = await fetch(`${expensesEndpoint}?id=eq.${id}`, {
+    const response = await fetch(`${expensesEndpoint}?id=${id}`, {
       method: "DELETE",
-      headers: supabaseHeaders,
     });
     if (response.ok) loadExpenses(); else setError("刪除失敗，請稍後再試。");
   }

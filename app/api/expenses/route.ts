@@ -2,6 +2,15 @@ import { env } from "cloudflare:workers";
 import { NextRequest, NextResponse } from "next/server";
 
 const members = ["李文龍", "馬僖慧", "李文斌", "黃富美", "李素玲", "蔡璧燦", "李素珍", "陳怡君"];
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+function json(data: unknown, init?: ResponseInit) {
+  return NextResponse.json(data, { ...init, headers: { ...corsHeaders, ...init?.headers } });
+}
 
 async function ensureTable() {
   await env.DB.prepare(`
@@ -45,7 +54,7 @@ export async function GET() {
       createdAt: row.createdAt,
     };
   });
-  return NextResponse.json(expenses);
+  return json(expenses);
 }
 
 export async function POST(request: NextRequest) {
@@ -59,7 +68,7 @@ export async function POST(request: NextRequest) {
     ? [...new Set(body.participants.map(String))].filter((name) => members.includes(name))
     : [];
   if (!title || !Number.isFinite(amount) || amount <= 0 || amount > 10_000_000 || !members.includes(payer) || (splitMode === "custom" && participants.length === 0)) {
-    return NextResponse.json({ error: "invalid expense" }, { status: 400 });
+    return json({ error: "invalid expense" }, { status: 400 });
   }
   const storedMode = splitMode === "custom" ? "single" : "all";
   const beneficiary = splitMode === "custom" ? JSON.stringify(participants) : null;
@@ -67,13 +76,17 @@ export async function POST(request: NextRequest) {
     INSERT INTO expenses (title, amount, payer, split_mode, beneficiary)
     VALUES (?, ?, ?, ?, ?)
   `).bind(title, amount, payer, storedMode, beneficiary).run();
-  return NextResponse.json({ id: result.meta.last_row_id }, { status: 201 });
+  return json({ id: result.meta.last_row_id }, { status: 201 });
 }
 
 export async function DELETE(request: NextRequest) {
   await ensureTable();
   const id = Number(request.nextUrl.searchParams.get("id"));
-  if (!Number.isInteger(id) || id <= 0) return NextResponse.json({ error: "invalid id" }, { status: 400 });
+  if (!Number.isInteger(id) || id <= 0) return json({ error: "invalid id" }, { status: 400 });
   await env.DB.prepare("DELETE FROM expenses WHERE id = ?").bind(id).run();
-  return NextResponse.json({ ok: true });
+  return json({ ok: true });
+}
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: corsHeaders });
 }

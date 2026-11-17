@@ -1,0 +1,1 @@
+ALTER TABLE `expenses` ADD `currency` text DEFAULT 'TWD' NOT NULL;

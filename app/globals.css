@@ -104,8 +104,10 @@ button { cursor:pointer; }
 .ticket-note { margin:24px 0 0; padding:18px 20px; border-left:3px solid var(--red); background:#f1e8da; color:#675d54; line-height:1.7; }
 .ledger { padding:100px 0; min-height:900px; }
 .ledger-overview { display:grid; grid-template-columns:2fr 1fr 1fr; background:var(--ink); color:white; margin-bottom:34px; }
+.dual-currency-overview { grid-template-columns:1.35fr 1.35fr .65fr .65fr; }
 .total-card,.mini-stat { padding:30px 34px; }
 .total-card { border-right:1px solid rgba(255,255,255,.15); }
+.cny-card { background:#1b493c; }
 .total-card small,.mini-stat small { display:block; color:#aeb7b1; letter-spacing:.08em; }
 .total-card strong { display:block; font:700 46px Arial,sans-serif; color:#e1c98f; margin:14px 0 7px; }
 .total-card strong span { font-size:15px; }
@@ -136,6 +138,13 @@ button { cursor:pointer; }
 .submit-expense { border:0; color:white; background:var(--red); width:100%; margin-top:24px; padding:16px; font-weight:700; }
 .submit-expense:disabled { opacity:.6; }.form-error { color:var(--red); margin:14px 0 0; }
 .balance-row { display:grid; grid-template-columns:46px 1fr auto; gap:13px; align-items:center; padding:15px 0; border-bottom:1px solid var(--line); }
+.dual-balance { grid-template-columns:46px 120px 1fr; align-items:start; }
+.balance-amounts { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.currency-balance { padding:10px 11px; background:#f3eee5; border:1px solid var(--line); }
+.currency-balance>span,.currency-balance>strong,.currency-balance>small { display:block; }
+.currency-balance>span { margin:0 0 6px; color:#68716b; font:700 11px/1.3 Arial,sans-serif; }
+.currency-balance>strong { font:700 15px/1.3 Arial,sans-serif; }
+.currency-balance>small { margin-top:6px; color:#7b827e; font:11px/1.45 Arial,sans-serif; }
 .avatar { width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#e3dccf;color:var(--jade);font-weight:700; }
 .balance-row b,.balance-row span { display:block; }.balance-row span { font:12px Arial,sans-serif;color:#7b827e;margin-top:5px; }
 .balance-row strong { font:700 18px Arial,sans-serif; }.positive { color:var(--jade); }.negative { color:var(--red); }
@@ -152,6 +161,7 @@ footer b,footer span { display:block; }.footer span { font:11px Arial,sans-serif
   .hero { min-height:700px; }.hero-art { right:-170px; opacity:.7; }.hero-copy { margin-top:80px; }.hero h1 { font-size:64px; }
   .day-tabs { overflow-x:auto; grid-template-columns:repeat(8,90px); }.people-inner { grid-template-columns:1fr; gap:50px; }.tip-grid { grid-template-columns:1fr 1fr; }
   .ledger-grid { grid-template-columns:1fr; }.flight-strip { grid-template-columns:1fr 70px 1fr; }.day-panel { padding:38px 30px; }
+  .dual-currency-overview { grid-template-columns:1fr 1fr; }
   .flight-summary { grid-template-columns:1fr; }.flight-summary>div { border-right:0;border-bottom:1px solid rgba(255,255,255,.15); }
 }
 @media (max-width:620px) {
@@ -167,6 +177,8 @@ footer b,footer span { display:block; }.footer span { font:11px Arial,sans-serif
   .people { padding:70px 0; }.member-grid { grid-template-columns:1fr; }.member-grid div:nth-child(odd) { border-right:0; }.tip-grid { grid-template-columns:1fr; }
   .ticket-grid,.hotel-summary { grid-template-columns:1fr; }.ticket-card { grid-template-columns:46px 1fr; }.ticket-number { grid-column:2;text-align:left; }
   .ledger-overview { grid-template-columns:1fr 1fr; }.total-card { grid-column:1/-1;border-bottom:1px solid rgba(255,255,255,.15); }.total-card strong { font-size:38px; }.mini-stat { padding:24px 18px; }
+  .dual-currency-overview .total-card { grid-column:auto; padding:24px 18px; }.dual-currency-overview .total-card strong { font-size:28px; }
+  .dual-balance { grid-template-columns:42px 1fr; }.balance-amounts { grid-column:1/-1; }
   .expense-form,.balance-list,.history { padding:24px 18px; }.split-options { grid-template-columns:1fr; }.expense-row { grid-template-columns:1fr auto; }.expense-row button { grid-column:2; }
   footer { flex-direction:column;align-items:start;gap:15px; }
 }

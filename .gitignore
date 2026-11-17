@@ -40,6 +40,7 @@ next-env.d.ts
 /pages-dist/
 /.wrangler/
 /outputs/
+/output/
 /work/
 /.pnpm-store/
 /tmp/

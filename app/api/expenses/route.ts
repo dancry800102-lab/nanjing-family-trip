@@ -12,24 +12,9 @@ function json(data: unknown, init?: ResponseInit) {
   return NextResponse.json(data, { ...init, headers: { ...corsHeaders, ...init?.headers } });
 }
 
-async function ensureTable() {
-  await env.DB.prepare(`
-    CREATE TABLE IF NOT EXISTS expenses (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      amount REAL NOT NULL,
-      payer TEXT NOT NULL,
-      split_mode TEXT NOT NULL CHECK (split_mode IN ('all', 'single')),
-      beneficiary TEXT,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    )
-  `).run();
-}
-
 export async function GET() {
-  await ensureTable();
   const result = await env.DB.prepare(`
-    SELECT id, title, amount, payer, split_mode,
+    SELECT id, title, amount, payer, currency, split_mode,
            beneficiary, created_at AS createdAt
     FROM expenses ORDER BY id DESC
   `).all();
@@ -49,6 +34,7 @@ export async function GET() {
       title: row.title,
       amount: row.amount,
       payer: row.payer,
+      currency: row.currency === "CNY" ? "CNY" : "TWD",
       splitMode: row.split_mode === "all" ? "all" : "custom",
       participants,
       createdAt: row.createdAt,
@@ -58,24 +44,24 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  await ensureTable();
   const body = await request.json() as Record<string, unknown>;
   const title = String(body.title ?? "").trim().slice(0, 80);
   const amount = Number(body.amount);
   const payer = String(body.payer ?? "");
+  const currency = body.currency === "CNY" ? "CNY" : body.currency === "TWD" ? "TWD" : "";
   const splitMode = body.splitMode === "custom" ? "custom" : "all";
   const participants = splitMode === "custom" && Array.isArray(body.participants)
     ? [...new Set(body.participants.map(String))].filter((name) => members.includes(name))
     : [];
-  if (!title || !Number.isFinite(amount) || amount <= 0 || amount > 10_000_000 || !members.includes(payer) || (splitMode === "custom" && participants.length === 0)) {
+  if (!title || !Number.isFinite(amount) || amount <= 0 || amount > 10_000_000 || !members.includes(payer) || !currency || (splitMode === "custom" && participants.length === 0)) {
     return json({ error: "invalid expense" }, { status: 400 });
   }
   const storedMode = splitMode === "custom" ? "single" : "all";
   const beneficiary = splitMode === "custom" ? JSON.stringify(participants) : null;
   const result = await env.DB.prepare(`
-    INSERT INTO expenses (title, amount, payer, split_mode, beneficiary)
-    VALUES (?, ?, ?, ?, ?)
-  `).bind(title, amount, payer, storedMode, beneficiary).run();
+    INSERT INTO expenses (title, amount, payer, currency, split_mode, beneficiary)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).bind(title, amount, payer, currency, storedMode, beneficiary).run();
   return json({ id: result.meta.last_row_id }, { status: 201 });
 }
 

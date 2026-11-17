@@ -6,7 +6,8 @@ const members = ["李文龍", "馬僖慧", "李文斌", "黃富美", "李素玲"
 
 type Stop = { time: string; title: string; detail: string; food?: string };
 type Day = { date: string; weekday: string; label: string; title: string; transport: string; hotel: string; stops: Stop[]; note?: string };
-type Expense = { id: number; title: string; amount: number; payer: string; splitMode: "all" | "custom"; participants: string[]; createdAt: string };
+type Currency = "TWD" | "CNY";
+type Expense = { id: number; title: string; amount: number; currency: Currency; payer: string; splitMode: "all" | "custom"; participants: string[]; createdAt: string };
 type Ticket = { name: string; englishName: string; ticketSuffix: string };
 
 const tickets: Ticket[] = [
@@ -127,8 +128,14 @@ const days: Day[] = [
   },
 ];
 
-function money(value: number) {
-  return new Intl.NumberFormat("zh-TW", { maximumFractionDigits: 1 }).format(value);
+const currencies: Currency[] = ["TWD", "CNY"];
+const currencyInfo: Record<Currency, { label: string; symbol: string }> = {
+  TWD: { label: "新台幣", symbol: "NT$" },
+  CNY: { label: "人民幣", symbol: "CN¥" },
+};
+
+function money(value: number, currency: Currency) {
+  return `${currencyInfo[currency].symbol} ${new Intl.NumberFormat("zh-TW", { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value)}`;
 }
 
 export default function TripApp() {
@@ -138,7 +145,7 @@ export default function TripApp() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({ title: "", amount: "", payer: members[0], splitMode: "all" as "all" | "custom", participants: [members[0]] });
+  const [form, setForm] = useState({ title: "", amount: "", currency: "TWD" as Currency, payer: members[0], splitMode: "all" as "all" | "custom", participants: [members[0]] });
 
   async function loadExpenses() {
     try {
@@ -148,6 +155,7 @@ export default function TripApp() {
         id: number;
         title: string;
         amount: number | string;
+        currency?: string;
         payer: string;
         splitMode: "all" | "custom";
         participants: string[];
@@ -157,6 +165,7 @@ export default function TripApp() {
         id: row.id,
         title: row.title,
         amount: Number(row.amount),
+        currency: row.currency === "CNY" ? "CNY" : "TWD",
         payer: row.payer === "李素貞" ? "李素珍" : row.payer === "蔡壁燦" ? "蔡璧燦" : row.payer,
         splitMode: row.splitMode,
         participants: (row.participants ?? []).map((name) => name === "李素貞" ? "李素珍" : name === "蔡壁燦" ? "蔡璧燦" : name),
@@ -186,6 +195,7 @@ export default function TripApp() {
         body: JSON.stringify({
           title: form.title.trim(),
           amount,
+          currency: form.currency,
           payer: form.payer,
           splitMode: form.splitMode,
           participants: form.splitMode === "custom" ? form.participants : [],
@@ -206,17 +216,26 @@ export default function TripApp() {
     if (response.ok) loadExpenses(); else setError("刪除失敗，請稍後再試。");
   }
 
-  const summary = useMemo(() => members.map((name) => {
-    let paid = 0, share = 0;
-    for (const item of expenses) {
-      if (item.payer === name) paid += item.amount;
-      if (item.splitMode === "all") share += item.amount / members.length;
-      if (item.splitMode === "custom" && item.participants.includes(name)) share += item.amount / item.participants.length;
+  const summaries = useMemo(() => {
+    const result = {} as Record<Currency, Array<{ name: string; paid: number; share: number; net: number }>>;
+    for (const currency of currencies) {
+      result[currency] = members.map((name) => {
+        let paid = 0, share = 0;
+        for (const item of expenses.filter((entry) => entry.currency === currency)) {
+          if (item.payer === name) paid += item.amount;
+          if (item.splitMode === "all") share += item.amount / members.length;
+          if (item.splitMode === "custom" && item.participants.includes(name)) share += item.amount / item.participants.length;
+        }
+        return { name, paid, share, net: paid - share };
+      });
     }
-    return { name, paid, share, net: paid - share };
-  }), [expenses]);
+    return result;
+  }, [expenses]);
 
-  const total = expenses.reduce((sum, item) => sum + item.amount, 0);
+  const totals = useMemo(() => ({
+    TWD: expenses.filter((item) => item.currency === "TWD").reduce((sum, item) => sum + item.amount, 0),
+    CNY: expenses.filter((item) => item.currency === "CNY").reduce((sum, item) => sum + item.amount, 0),
+  }), [expenses]);
   const day = days[activeDay];
 
   return (
@@ -337,10 +356,11 @@ export default function TripApp() {
         <section className="ledger section-wrap">
           <div className="section-heading">
             <div><p className="eyebrow dark">SHARED EXPENSES</p><h2>旅費共享記帳</h2></div>
-            <p>資料同步儲存，同行成員開啟網站即可看見最新帳目。</p>
+            <p>資料同步儲存；新台幣與人民幣分開記錄、分開結算，不進行匯率換算。</p>
           </div>
-          <div className="ledger-overview">
-            <div className="total-card"><small>目前總支出</small><strong><span>NT$</span> {money(total)}</strong><p>{expenses.length} 筆共同旅程紀錄</p></div>
+          <div className="ledger-overview dual-currency-overview">
+            <div className="total-card"><small>新台幣總支出 · TWD</small><strong>{money(totals.TWD, "TWD")}</strong><p>{expenses.filter((x) => x.currency === "TWD").length} 筆旅費紀錄</p></div>
+            <div className="total-card cny-card"><small>人民幣總支出 · CNY</small><strong>{money(totals.CNY, "CNY")}</strong><p>{expenses.filter((x) => x.currency === "CNY").length} 筆旅費紀錄</p></div>
             <div className="mini-stat"><small>全員均分</small><b>{expenses.filter((x) => x.splitMode === "all").length}</b><span>筆</span></div>
             <div className="mini-stat"><small>自選成員</small><b>{expenses.filter((x) => x.splitMode === "custom").length}</b><span>筆</span></div>
           </div>
@@ -349,7 +369,8 @@ export default function TripApp() {
             <form className="expense-form" onSubmit={addExpense}>
               <div className="form-title"><span>＋</span><div><h3>新增一筆</h3><p>誰先付款、由誰分攤</p></div></div>
               <label>支出項目<input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="例如：晚餐、計程車" /></label>
-              <label>金額（新台幣）<input inputMode="decimal" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="0" /></label>
+              <label>幣別<select value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value as Currency })}><option value="TWD">新台幣（TWD / NT$）</option><option value="CNY">人民幣（CNY / CN¥）</option></select></label>
+              <label>金額（{currencyInfo[form.currency].label}）<input inputMode="decimal" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="0.00" /></label>
               <label>付款人<select value={form.payer} onChange={(e) => setForm({ ...form, payer: e.target.value })}>{members.map((name) => <option key={name}>{name}</option>)}</select></label>
               <fieldset><legend>這筆費用怎麼算？</legend>
                 <div className="split-options">
@@ -377,7 +398,7 @@ export default function TripApp() {
                       </label>
                     ))}
                   </div>
-                  {form.participants.length > 0 && form.amount && Number(form.amount) > 0 && <p>每人分攤 NT$ {money(Number(form.amount) / form.participants.length)}</p>}
+                  {form.participants.length > 0 && form.amount && Number(form.amount) > 0 && <p>每人分攤 {money(Number(form.amount) / form.participants.length, form.currency)}</p>}
                 </fieldset>
               )}
               {error && <p className="form-error">{error}</p>}
@@ -386,7 +407,7 @@ export default function TripApp() {
 
             <div className="balance-list">
               <div className="form-title"><span>↗</span><div><h3>成員結算</h3><p>正數為應收，負數為應付</p></div></div>
-              {summary.map((item) => <div className="balance-row" key={item.name}><div className="avatar">{item.name.slice(-1)}</div><div><b>{item.name}</b><span>代墊 {money(item.paid)} · 分攤 {money(item.share)}</span></div><strong className={item.net >= 0 ? "positive" : "negative"}>{item.net >= 0 ? "+" : "−"}{money(Math.abs(item.net))}</strong></div>)}
+              {members.map((name, index) => <div className="balance-row dual-balance" key={name}><div className="avatar">{name.slice(-1)}</div><div className="balance-person"><b>{name}</b><span>兩種幣別分開結算</span></div><div className="balance-amounts">{currencies.map((currency) => { const item = summaries[currency][index]; return <div className="currency-balance" key={currency}><span>{currencyInfo[currency].label} · {currency}</span><strong className={item.net >= 0 ? "positive" : "negative"}>{item.net > 0 ? "+" : item.net < 0 ? "−" : ""}{money(Math.abs(item.net), currency)}</strong><small>代墊 {money(item.paid, currency)}<br />分攤 {money(item.share, currency)}</small></div>; })}</div></div>)}
             </div>
           </div>
 
@@ -395,7 +416,7 @@ export default function TripApp() {
             {!loading && expenses.length === 0 && <div className="empty">還沒有帳目，從上方新增第一筆旅費吧。</div>}
             {expenses.map((item) => <div className="expense-row" key={item.id}>
               <div><b>{item.title}</b><span>{item.payer} 付款 · {item.splitMode === "all" ? "8 人均分" : `${item.participants.join("、")} 分攤`}</span></div>
-              <strong>NT$ {money(item.amount)}</strong><button onClick={() => removeExpense(item.id)} aria-label={`刪除 ${item.title}`}>刪除</button>
+              <strong>{money(item.amount, item.currency)}</strong><button onClick={() => removeExpense(item.id)} aria-label={`刪除 ${item.title}`}>刪除</button>
             </div>)}
           </div>
         </section>

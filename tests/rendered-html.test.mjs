@@ -24,3 +24,9 @@ test("legacy expenses default to TWD and the migration is bounded", async () => 
   const migration = await read("../drizzle/0001_massive_maria_hill.sql");
   assert.equal(migration.trim(), "ALTER TABLE `expenses` ADD `currency` text DEFAULT 'TWD' NOT NULL;");
 });
+
+test("expense deletion does not call the removed table initializer", async () => {
+  const route = await read("../app/api/expenses/route.ts");
+  assert.doesNotMatch(route, /ensureTable\(\)/);
+  assert.match(route, /new URL\(request\.url\)\.searchParams\.get\("id"\)/);
+});

@@ -66,8 +66,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  await ensureTable();
-  const id = Number(request.nextUrl.searchParams.get("id"));
+  const id = Number(new URL(request.url).searchParams.get("id"));
   if (!Number.isInteger(id) || id <= 0) return json({ error: "invalid id" }, { status: 400 });
   await env.DB.prepare("DELETE FROM expenses WHERE id = ?").bind(id).run();
   return json({ ok: true });

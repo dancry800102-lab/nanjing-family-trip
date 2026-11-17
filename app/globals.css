@@ -150,9 +150,14 @@ button { cursor:pointer; }
 .balance-row strong { font:700 18px Arial,sans-serif; }.positive { color:var(--jade); }.negative { color:var(--red); }
 .history { margin-top:30px; }.history-head { display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--ink);padding-bottom:16px; }
 .history-head h3 { margin:0;font-size:23px; }.history-head span { color:#777; }
-.expense-row { display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:22px;padding:18px 0;border-bottom:1px solid var(--line); }
+.expense-row { display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:22px;padding:18px 0;border-bottom:1px solid var(--line); }
 .expense-row b,.expense-row span { display:block; }.expense-row span { color:#757c77;font-size:14px;margin-top:5px; }
 .expense-row strong { font:700 17px Arial,sans-serif; }.expense-row button { border:0;background:transparent;color:var(--red); }
+.settled-check { display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700;color:var(--jade);white-space:nowrap; }
+.settled-check input { width:18px;height:18px;margin:0;accent-color:var(--jade); }
+.settled-check span { margin:0;color:inherit;font-size:13px; }
+.expense-row.settled>div,.expense-row.settled>strong { opacity:.5; }
+.expense-row.settled>div b { text-decoration:line-through; }
 .empty { padding:50px;text-align:center;color:#777; }
 footer { background:#101d17;color:#d9dedb;padding:40px max(20px,calc((100% - 1180px)/2));display:flex;justify-content:space-between;align-items:center; }
 footer b,footer span { display:block; }.footer span { font:11px Arial,sans-serif; }.footer p { color:#939e98; }
@@ -179,6 +184,6 @@ footer b,footer span { display:block; }.footer span { font:11px Arial,sans-serif
   .ledger-overview { grid-template-columns:1fr 1fr; }.total-card { grid-column:1/-1;border-bottom:1px solid rgba(255,255,255,.15); }.total-card strong { font-size:38px; }.mini-stat { padding:24px 18px; }
   .dual-currency-overview .total-card { grid-column:auto; padding:24px 18px; }.dual-currency-overview .total-card strong { font-size:28px; }
   .dual-balance { grid-template-columns:42px 1fr; }.balance-amounts { grid-column:1/-1; }
-  .expense-form,.balance-list,.history { padding:24px 18px; }.split-options { grid-template-columns:1fr; }.expense-row { grid-template-columns:1fr auto; }.expense-row button { grid-column:2; }
+  .expense-form,.balance-list,.history { padding:24px 18px; }.split-options { grid-template-columns:1fr; }.expense-row { grid-template-columns:1fr auto;gap:14px; }.settled-check { grid-column:1; }.expense-row button { grid-column:2;grid-row:2; }
   footer { flex-direction:column;align-items:start;gap:15px; }
 }

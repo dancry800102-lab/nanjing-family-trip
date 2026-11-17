@@ -7,6 +7,7 @@ export const expenses = sqliteTable("expenses", {
   amount: real("amount").notNull(),
   payer: text("payer").notNull(),
   currency: text("currency").notNull().default("TWD"),
+  settled: integer("settled", { mode: "boolean" }).notNull().default(false),
   splitMode: text("split_mode").notNull(),
   beneficiary: text("beneficiary"),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),

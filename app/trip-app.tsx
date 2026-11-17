@@ -7,7 +7,7 @@ const members = ["李文龍", "馬僖慧", "李文斌", "黃富美", "李素玲"
 type Stop = { time: string; title: string; detail: string; food?: string };
 type Day = { date: string; weekday: string; label: string; title: string; transport: string; hotel: string; stops: Stop[]; note?: string };
 type Currency = "TWD" | "CNY";
-type Expense = { id: number; title: string; amount: number; currency: Currency; payer: string; splitMode: "all" | "custom"; participants: string[]; createdAt: string };
+type Expense = { id: number; title: string; amount: number; currency: Currency; payer: string; splitMode: "all" | "custom"; participants: string[]; settled: boolean; createdAt: string };
 type Ticket = { name: string; englishName: string; ticketSuffix: string };
 
 const tickets: Ticket[] = [
@@ -144,6 +144,7 @@ export default function TripApp() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [form, setForm] = useState({ title: "", amount: "", currency: "TWD" as Currency, payer: members[0], splitMode: "all" as "all" | "custom", participants: [members[0]] });
 
@@ -159,6 +160,7 @@ export default function TripApp() {
         payer: string;
         splitMode: "all" | "custom";
         participants: string[];
+        settled?: boolean;
         createdAt: string;
       }>;
       setExpenses(rows.map((row) => ({
@@ -169,6 +171,7 @@ export default function TripApp() {
         payer: row.payer === "李素貞" ? "李素珍" : row.payer === "蔡壁燦" ? "蔡璧燦" : row.payer,
         splitMode: row.splitMode,
         participants: (row.participants ?? []).map((name) => name === "李素貞" ? "李素珍" : name === "蔡壁燦" ? "蔡璧燦" : name),
+        settled: row.settled === true,
         createdAt: row.createdAt,
       })));
     } catch {
@@ -216,12 +219,26 @@ export default function TripApp() {
     if (response.ok) loadExpenses(); else setError("刪除失敗，請稍後再試。");
   }
 
+  async function toggleSettled(item: Expense) {
+    setUpdatingId(item.id); setError("");
+    try {
+      const response = await fetch(expensesEndpoint, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: item.id, settled: !item.settled }),
+      });
+      if (!response.ok) throw new Error();
+      await loadExpenses();
+    } catch { setError("已均攤狀態沒有更新成功，請再試一次。"); }
+    finally { setUpdatingId(null); }
+  }
+
   const summaries = useMemo(() => {
     const result = {} as Record<Currency, Array<{ name: string; paid: number; share: number; net: number }>>;
     for (const currency of currencies) {
       result[currency] = members.map((name) => {
         let paid = 0, share = 0;
-        for (const item of expenses.filter((entry) => entry.currency === currency)) {
+        for (const item of expenses.filter((entry) => entry.currency === currency && !entry.settled)) {
           if (item.payer === name) paid += item.amount;
           if (item.splitMode === "all") share += item.amount / members.length;
           if (item.splitMode === "custom" && item.participants.includes(name)) share += item.amount / item.participants.length;
@@ -406,7 +423,7 @@ export default function TripApp() {
             </form>
 
             <div className="balance-list">
-              <div className="form-title"><span>↗</span><div><h3>成員結算</h3><p>正數為應收，負數為應付</p></div></div>
+              <div className="form-title"><span>↗</span><div><h3>成員結算</h3><p>正數為應收，負數為應付；已均攤項目不列入計算</p></div></div>
               {members.map((name, index) => <div className="balance-row dual-balance" key={name}><div className="avatar">{name.slice(-1)}</div><div className="balance-person"><b>{name}</b><span>兩種幣別分開結算</span></div><div className="balance-amounts">{currencies.map((currency) => { const item = summaries[currency][index]; return <div className="currency-balance" key={currency}><span>{currencyInfo[currency].label} · {currency}</span><strong className={item.net >= 0 ? "positive" : "negative"}>{item.net > 0 ? "+" : item.net < 0 ? "−" : ""}{money(Math.abs(item.net), currency)}</strong><small>代墊 {money(item.paid, currency)}<br />分攤 {money(item.share, currency)}</small></div>; })}</div></div>)}
             </div>
           </div>
@@ -414,9 +431,11 @@ export default function TripApp() {
           <div className="history">
             <div className="history-head"><h3>支出明細</h3><span>{loading ? "讀取中…" : `共 ${expenses.length} 筆`}</span></div>
             {!loading && expenses.length === 0 && <div className="empty">還沒有帳目，從上方新增第一筆旅費吧。</div>}
-            {expenses.map((item) => <div className="expense-row" key={item.id}>
+            {expenses.map((item) => <div className={`expense-row${item.settled ? " settled" : ""}`} key={item.id}>
               <div><b>{item.title}</b><span>{item.payer} 付款 · {item.splitMode === "all" ? "8 人均分" : `${item.participants.join("、")} 分攤`}</span></div>
-              <strong>{money(item.amount, item.currency)}</strong><button onClick={() => removeExpense(item.id)} aria-label={`刪除 ${item.title}`}>刪除</button>
+              <strong>{money(item.amount, item.currency)}</strong>
+              <label className="settled-check"><input type="checkbox" checked={item.settled} disabled={updatingId === item.id} onChange={() => toggleSettled(item)} /><span>{updatingId === item.id ? "更新中…" : "已均攤"}</span></label>
+              <button onClick={() => removeExpense(item.id)} aria-label={`刪除 ${item.title}`}>刪除</button>
             </div>)}
           </div>
         </section>

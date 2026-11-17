@@ -30,3 +30,15 @@ test("expense deletion does not call the removed table initializer", async () =>
   assert.doesNotMatch(route, /ensureTable\(\)/);
   assert.match(route, /new URL\(request\.url\)\.searchParams\.get\("id"\)/);
 });
+
+test("settled expenses stay visible but are excluded from member settlement", async () => {
+  const [app, route, schema] = await Promise.all([
+    read("../app/trip-app.tsx"),
+    read("../app/api/expenses/route.ts"),
+    read("../db/schema.ts"),
+  ]);
+  assert.match(schema, /settled: integer\("settled", \{ mode: "boolean" \}\)\.notNull\(\)\.default\(false\)/);
+  assert.match(route, /UPDATE expenses SET settled = \? WHERE id = \?/);
+  assert.match(app, /entry\.currency === currency && !entry\.settled/);
+  assert.match(app, /"已均攤"/);
+});
